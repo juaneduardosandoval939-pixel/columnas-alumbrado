@@ -1,0 +1,145 @@
+:root {
+  --verde: #1e7a46;
+  --verde-osc: #145a33;
+  --verde-claro: #e6f4ea;
+  --fondo: #f5f7f6;
+  --borde: #dfe4e1;
+  --texto: #1f2a24;
+  --tenue: #66736b;
+  --rojo: #c0392b;
+  --ambar: #c98a00;
+  --azul: #2563a8;
+  --radio: 10px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 15px;
+  -webkit-tap-highlight-color: transparent;
+}
+button, input, select, textarea { font: inherit; }
+a { color: var(--verde); }
+
+/* ── Estructura ─────────────────────────────────────────────── */
+.app { display: flex; min-height: 100vh; }
+.lateral {
+  width: 240px; background: #fff; border-right: 1px solid var(--borde);
+  display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh;
+}
+.marca { padding: 18px 16px; border-bottom: 1px solid var(--borde); font-weight: 700; color: var(--verde-osc); line-height: 1.2; }
+.marca small { display: block; font-weight: 400; color: var(--tenue); font-size: 12px; margin-top: 2px; }
+.menu { flex: 1; overflow-y: auto; padding: 8px; }
+.menu button {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  border: 0; background: none; padding: 10px 12px; border-radius: 8px; cursor: pointer; color: var(--texto);
+}
+.menu button:hover { background: var(--fondo); }
+.menu button.activo { background: var(--verde-claro); color: var(--verde-osc); font-weight: 600; }
+.pie-lateral { padding: 12px 16px; border-top: 1px solid var(--borde); font-size: 13px; color: var(--tenue); }
+.principal { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.barra {
+  background: #fff; border-bottom: 1px solid var(--borde); padding: 10px 20px;
+  display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 500;
+}
+.barra h1 { font-size: 19px; margin: 0; flex: 1; }
+.hamburguesa { display: none; border: 0; background: none; font-size: 22px; cursor: pointer; }
+.contenido { padding: 20px; max-width: 1200px; width: 100%; }
+.velo { display: none; }
+
+@media (max-width: 860px) {
+  .lateral { position: fixed; left: -260px; z-index: 1000; transition: left .2s; box-shadow: 0 0 20px rgba(0,0,0,.2); }
+  .lateral.abierto { left: 0; }
+  .velo.abierto { display: block; position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 999; }
+  .hamburguesa { display: block; }
+  .contenido { padding: 12px; }
+}
+
+/* ── Componentes ────────────────────────────────────────────── */
+.tarjeta { background: #fff; border: 1px solid var(--borde); border-radius: var(--radio); padding: 16px; margin-bottom: 14px; }
+.tarjeta h2 { font-size: 16px; margin: 0 0 12px; }
+.grilla { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.dato { background: #fff; border: 1px solid var(--borde); border-radius: var(--radio); padding: 14px; }
+.dato .valor { font-size: 24px; font-weight: 700; color: var(--verde-osc); }
+.dato .etiqueta { font-size: 13px; color: var(--tenue); }
+.fila { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+.fila > * { flex: 1 1 160px; }
+.campo { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+.campo label { font-size: 13px; font-weight: 600; color: var(--tenue); }
+.campo input, .campo select, .campo textarea {
+  border: 1px solid var(--borde); border-radius: 8px; padding: 9px 10px; background: #fff; width: 100%;
+}
+.campo textarea { min-height: 70px; resize: vertical; }
+.btn {
+  border: 1px solid var(--verde); background: var(--verde); color: #fff; padding: 9px 16px;
+  border-radius: 8px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; justify-content: center;
+}
+.btn:disabled { opacity: .55; cursor: default; }
+.btn.sec { background: #fff; color: var(--verde-osc); }
+.btn.peligro { background: var(--rojo); border-color: var(--rojo); }
+.btn.chico { padding: 5px 10px; font-size: 13px; }
+.btn.grande { padding: 14px; font-size: 17px; width: 100%; }
+.acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+.etq { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.etq.gris { background: #eceff1; color: #546e7a; }
+.etq.verde { background: #dcf3e3; color: #17663a; }
+.etq.ambar { background: #fff3cd; color: #8a6300; }
+.etq.rojo { background: #fde2e0; color: #a12b1f; }
+.etq.azul { background: #e0ecfb; color: #1d4f8c; }
+.error { background: #fde2e0; color: #a12b1f; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
+.aviso { background: #fff3cd; color: #6b4e00; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
+.ok { background: #dcf3e3; color: #17663a; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
+.tenue { color: var(--tenue); font-size: 13px; }
+
+table.tabla { width: 100%; border-collapse: collapse; background: #fff; font-size: 14px; }
+.tabla th { text-align: left; background: #f0f3f1; padding: 9px 10px; font-size: 13px; color: var(--tenue); white-space: nowrap; }
+.tabla td { padding: 9px 10px; border-top: 1px solid var(--borde); vertical-align: top; }
+.tabla tr.clic { cursor: pointer; }
+.tabla tr.clic:hover td { background: #fafcfb; }
+.tabla .num { text-align: right; white-space: nowrap; }
+.envoltura-tabla { overflow-x: auto; border: 1px solid var(--borde); border-radius: var(--radio); }
+
+.mapa { height: 320px; border-radius: var(--radio); overflow: hidden; border: 1px solid var(--borde); }
+.mapa.grande { height: calc(100vh - 160px); min-height: 400px; }
+.fotos { display: flex; gap: 8px; flex-wrap: wrap; }
+.foto { position: relative; width: 96px; height: 96px; border-radius: 8px; overflow: hidden; background: #e9ecea; border: 1px solid var(--borde); }
+.foto img { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
+.foto .marca-foto { position: absolute; left: 4px; bottom: 4px; font-size: 10px; background: rgba(0,0,0,.6); color: #fff; padding: 1px 5px; border-radius: 4px; }
+.foto .quitar { position: absolute; right: 3px; top: 3px; border: 0; background: rgba(0,0,0,.6); color: #fff; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; }
+
+.modal-fondo { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 2000; display: flex; align-items: flex-start; justify-content: center; padding: 30px 12px; overflow-y: auto; }
+.modal { background: #fff; border-radius: 12px; width: 100%; max-width: 640px; padding: 18px; }
+.modal h2 { margin: 0 0 14px; font-size: 18px; }
+.visor { max-width: 100%; max-height: 80vh; display: block; margin: auto; }
+
+.login { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; background: linear-gradient(160deg, var(--verde-osc), var(--verde)); }
+.login .caja { background: #fff; border-radius: 14px; padding: 28px; width: 100%; max-width: 380px; }
+.login h1 { font-size: 20px; margin: 0 0 4px; color: var(--verde-osc); }
+
+.estado-sync { font-size: 12px; padding: 4px 10px; border-radius: 20px; border: 0; cursor: pointer; white-space: nowrap; }
+.barras .barra-h { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; }
+.barras .barra-h .nombre { width: 140px; flex: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.barras .barra-h .pista { flex: 1; background: #eef1ef; border-radius: 4px; height: 16px; overflow: hidden; }
+.barras .barra-h .pista, .barras .barra-h .relleno { display: block; }
+.barras .barra-h .relleno { height: 100%; background: var(--verde); }
+.muestra-color { display: inline-block; width: 12px; height: 12px; border-radius: 3px; border: 1px solid #999; vertical-align: middle; margin-right: 6px; }
+
+/* ── Impresión de certificados ─────────────────────────────── */
+.solo-impresion { display: none; }
+@media print {
+  @page { size: A4; margin: 12mm; }
+  body { background: #fff; font-size: 11px; }
+  .lateral, .barra, .no-imprimir, .velo { display: none !important; }
+  .contenido { padding: 0; max-width: none; }
+  .solo-impresion { display: block; }
+  .tarjeta { border: 0; padding: 0; }
+  .envoltura-tabla { border: 0; overflow: visible; }
+  .tabla th, .tabla td { padding: 4px 6px; border: 1px solid #999; }
+  /* Si hay una ventana abierta (ej. un certificado), se imprime solo esa ventana */
+  body:has(.modal-fondo) .contenido > *:not(.modal-fondo) { display: none !important; }
+  .modal-fondo { position: static; background: none; padding: 0; overflow: visible; }
+  .modal { max-width: none !important; padding: 0; border-radius: 0; }
+  .modal > h2 { display: none; }
+}
