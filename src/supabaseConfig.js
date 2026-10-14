@@ -1,12 +1,12 @@
 // ── CONFIGURACIÓN SUPABASE ────────────────────────────────────────────────────
-// Supabase → Project Settings → API: copiar la URL y la "anon public key".
+// Proyecto Supabase "columnas-crear" (São Paulo). URL y "anon public key".
 // La anon key es pública por diseño: se puede dejar en el código.
 //
 // Alternativa: cargarlas en Vercel → Settings → Environment Variables como
 // VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY (tienen prioridad sobre esto).
 
-export const SUPABASE_URL      = import.meta.env?.VITE_SUPABASE_URL      || 'PEGAR_URL_DEL_PROYECTO'
-export const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || 'PEGAR_ANON_KEY'
+export const SUPABASE_URL      = import.meta.env?.VITE_SUPABASE_URL      || 'https://gqwpakmedpcwehdwbeqz.supabase.co'
+export const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdxd3Bha21lZHBjd2VoZHdiZXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5OTAzODYsImV4cCI6MjEwNzU2NjM4Nn0.CoA9bRDZIYnEhhr7bCue7w2sIMC10VerxXZmLePLrh0'
 
 // Carpeta (bucket) de Supabase Storage donde se guardan las fotos
 export const BUCKET_FOTOS = 'fotos-columnas'

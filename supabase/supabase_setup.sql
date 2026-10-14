@@ -31,8 +31,12 @@ on conflict (id) do nothing;
 
 drop policy if exists "fotos_sube" on storage.objects;
 drop policy if exists "fotos_lee"  on storage.objects;
+drop policy if exists "fotos_reemplaza" on storage.objects;
 
 create policy "fotos_sube" on storage.objects for insert to anon
   with check (bucket_id = 'fotos-columnas');
 create policy "fotos_lee"  on storage.objects for select to anon
   using (bucket_id = 'fotos-columnas');
+-- La app sube con x-upsert (reintentos sin duplicar): necesita también UPDATE
+create policy "fotos_reemplaza" on storage.objects for update to anon
+  using (bucket_id = 'fotos-columnas') with check (bucket_id = 'fotos-columnas');
