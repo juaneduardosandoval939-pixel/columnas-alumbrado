@@ -25,3 +25,11 @@ Misma arquitectura que `mantenimiento-flota-app`: React 18 + Vite, datos sincron
 - El supervisor abre turno → carga cuadras → cierra turno cargando litros reales por color. Productividad = columnas/hora, litros/columna y desvío vs. estimado.
 - Certificado = cuadras terminadas sin certificar de un cliente y período, agrupadas por calle con intersecciones y subtotales. Una cuadra certificada no se vuelve a certificar salvo que se anule el certificado.
 - La app debe seguir funcionando sin señal (todo se guarda local primero).
+
+## Versión de prueba en la PC de Eduardo
+- `escritorio/instalar.bat` instala todo y clona `desarrollo` en el escritorio; `escritorio/iniciar.bat` levanta Vite en `localhost:5173`; `escritorio/actualizar.bat` hace `git pull` cada 15 s, así cada push a `desarrollo` se ve en vivo (HMR).
+- Por eso: subir a `desarrollo` solo cambios que compilan (`npm run build`), en commits chicos y con mensaje claro en español (Eduardo los ve en la ventana de actualizaciones).
+- Los `.bat` van con fin de línea CRLF (`.gitattributes`).
+
+## Segundo cerebro (Obsidian en Google Drive)
+- Nota del proyecto: `Obsidian Vault/App-Columnas-CREAR.md`. Después de cada cambio importante, actualizar ahí el estado, el historial de cambios y los pendientes.

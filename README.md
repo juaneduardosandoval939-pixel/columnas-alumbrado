@@ -56,7 +56,14 @@ Fuente: "rendimiento insumos pintura de postes y analisis de costos.xlsx".
 
 En el celular: abrir la dirección en Chrome → menú ⋮ → "Agregar a pantalla principal".
 
-## Probar en la PC antes de publicar (versión local)
+## Versión de prueba en el escritorio, con actualización automática (recomendada)
+
+1. Descargar **`escritorio/instalar.bat`** y hacerle doble clic. Instala Git y Node.js si faltan, baja el código de la rama `desarrollo` a la carpeta `columnas-alumbrado` del escritorio y crea el acceso directo **"Abrir Columnas CREAR"**.
+2. Se abre el sistema en `http://localhost:5173`. Quedan dos ventanas negras: la del sistema (no cerrarla mientras se prueba) y una minimizada de **actualizaciones**.
+3. Cada 15 segundos busca cambios nuevos en GitHub: cuando Claude sube un cambio a `desarrollo`, la página se actualiza sola en el navegador.
+4. Las veces siguientes: doble clic en **"Abrir Columnas CREAR"** en el escritorio.
+
+## Probar en la PC antes de publicar (versión local, sin actualización automática)
 
 1. Instalar **Node.js** (https://nodejs.org, botón LTS) — una sola vez.
 2. Descargar el código (GitHub → Code → Download ZIP) y descomprimirlo.
