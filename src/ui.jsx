@@ -1,7 +1,7 @@
 // ── COMPONENTES COMPARTIDOS ───────────────────────────────────────────────────
 import { useEffect, useState } from 'react'
 import L from 'leaflet'
-import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Polyline, CircleMarker, useMap, useMapEvents } from 'react-leaflet'
 import * as XLSX from 'xlsx'
 import iconoUrl from 'leaflet/dist/images/marker-icon.png'
 import icono2xUrl from 'leaflet/dist/images/marker-icon-2x.png'
@@ -43,7 +43,7 @@ export function obtenerGPS() {
     navigator.geolocation.getCurrentPosition(
       p => ok({ lat: +p.coords.latitude.toFixed(6), lng: +p.coords.longitude.toFixed(6), precision: Math.round(p.coords.accuracy) }),
       e => ok({ error: e.code === 1 ? 'Permiso de ubicación bloqueado: habilitalo en el navegador' : 'No se pudo obtener la ubicación' }),
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 },
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 },
     )
   })
 }
@@ -62,29 +62,97 @@ export async function buscarDireccion(texto) {
   return r.json()
 }
 
-// ── Mapa para ubicar un punto (marcador arrastrable) ─────────────────────────
-function Recentrar({ lat, lng }) {
+// ── Mapas ───────────────────────────────────────────────────────────────────
+export function CapaBase() {
+  return <TileLayer attribution="© OpenStreetMap" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" maxZoom={19} />
+}
+
+// Color de la cuadra en el mapa: verde terminada, azul certificada, ámbar en proceso
+export const COLORES_CUADRA = { terminada: '#16a34a', certificada: '#2563eb', proceso: '#d97706' }
+export function colorCuadra(r) {
+  if (['Certificado', 'Facturado'].includes(r.estadoCert) || r.certificadoId) return COLORES_CUADRA.certificada
+  if (r.estadoOperativo === 'En proceso') return COLORES_CUADRA.proceso
+  return COLORES_CUADRA.terminada
+}
+
+// Desplaza un tramo "px" pixeles hacia un costado (para dibujar a los lados de la calle)
+function desplazar(mapa, a, b, px) {
+  const z = mapa.getZoom()
+  const pa = mapa.project(a, z), pb = mapa.project(b, z)
+  const dx = pb.x - pa.x, dy = pb.y - pa.y, l = Math.hypot(dx, dy) || 1
+  const nx = -dy / l * px, ny = dx / l * px
+  return [mapa.unproject([pa.x + nx, pa.y + ny], z), mapa.unproject([pb.x + nx, pb.y + ny], z)]
+}
+
+// Cuadra dibujada como dos líneas paralelas a los costados de la calle (las veredas),
+// así el nombre de la calle del mapa queda libre en el medio y se sigue leyendo.
+// Sin punto de fin (cuadras viejas) se muestra un círculo.
+export function LineaCuadra({ inicio, fin, color, children, onClick }) {
   const mapa = useMap()
-  useEffect(() => { if (lat && lng) mapa.setView([lat, lng], Math.max(mapa.getZoom(), 17)) }, [lat, lng])
+  const [zoom, setZoom] = useState(mapa.getZoom())
+  useMapEvents({ zoomend: () => setZoom(mapa.getZoom()) })
+  const eventos = onClick ? { click: onClick } : undefined
+  if (!fin?.[0] || !fin?.[1]) {
+    return (
+      <CircleMarker center={inicio} radius={8} pathOptions={{ color: '#fff', weight: 2, fillColor: color, fillOpacity: 0.9 }} eventHandlers={eventos}>
+        {children}
+      </CircleMarker>
+    )
+  }
+  const sep = zoom >= 18 ? 11 : zoom >= 16 ? 8 : 0
+  const ancho = zoom >= 16 ? 4 : 5
+  const estilo = { color, weight: ancho, opacity: 0.9, lineCap: 'round', interactive: false }
+  return (
+    <>
+      {sep ? (
+        <>
+          <Polyline positions={desplazar(mapa, inicio, fin, sep)} pathOptions={estilo} />
+          <Polyline positions={desplazar(mapa, inicio, fin, -sep)} pathOptions={estilo} />
+        </>
+      ) : <Polyline positions={[inicio, fin]} pathOptions={estilo} />}
+      {/* franja invisible más ancha para poder tocar la cuadra con el dedo */}
+      <Polyline positions={[inicio, fin]} pathOptions={{ color, weight: 26, opacity: 0 }} eventHandlers={eventos}>{children}</Polyline>
+    </>
+  )
+}
+
+function Encuadrar({ puntos }) {
+  const mapa = useMap()
+  const clave = puntos.map(p => p.join(',')).join(';')
+  useEffect(() => {
+    if (!puntos.length) return
+    if (puntos.length === 1) mapa.setView(puntos[0], Math.max(mapa.getZoom(), 17))
+    else mapa.fitBounds(puntos, { padding: [40, 40], maxZoom: 18 })
+  }, [clave])
   return null
 }
-function ClicEnMapa({ onMover }) {
-  useMapEvents({ click: e => onMover(+e.latlng.lat.toFixed(6), +e.latlng.lng.toFixed(6)) })
+function ClicEnMapa({ onClic }) {
+  useMapEvents({ click: e => onClic(+e.latlng.lat.toFixed(6), +e.latlng.lng.toFixed(6)) })
   return null
 }
-export function MapaPunto({ lat, lng, onMover }) {
-  const pos = lat && lng ? [lat, lng] : null
+
+const icono = (texto, fondo) => L.divIcon({
+  className: '',
+  html: `<div style="background:${fondo};color:#fff;font-weight:700;border:2px solid #fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.4)">${texto}</div>`,
+  iconSize: [26, 26], iconAnchor: [13, 13],
+})
+const ICONO_INICIO = icono('A', '#16a34a')
+const ICONO_FIN = icono('B', '#dc2626')
+
+// Mapa para marcar el inicio (A) y el fin (B) de la cuadra; los marcadores se pueden arrastrar
+export function MapaCuadra({ inicio, fin, color, onMover, onClic }) {
+  const pIni = inicio?.lat && inicio?.lng ? [+inicio.lat, +inicio.lng] : null
+  const pFin = fin?.lat && fin?.lng ? [+fin.lat, +fin.lng] : null
+  const mover = cual => ({ dragend: e => { const p = e.target.getLatLng(); onMover(cual, +p.lat.toFixed(6), +p.lng.toFixed(6)) } })
   return (
     <div className="mapa">
-      <MapContainer center={pos || CENTRO} zoom={pos ? 17 : 13} style={{ height: '100%' }}>
-        <TileLayer attribution="© OpenStreetMap" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        {pos && (
-          <Marker position={pos} icon={ICONO} draggable eventHandlers={{
-            dragend: e => { const p = e.target.getLatLng(); onMover(+p.lat.toFixed(6), +p.lng.toFixed(6)) },
-          }} />
-        )}
-        <ClicEnMapa onMover={onMover} />
-        <Recentrar lat={lat} lng={lng} />
+      <MapContainer center={pIni || pFin || CENTRO} zoom={pIni ? 17 : 13} style={{ height: '100%' }}>
+        <CapaBase />
+        {pIni && pFin && <LineaCuadra inicio={pIni} fin={pFin} color={color} />}
+        {pIni && <Marker position={pIni} icon={ICONO_INICIO} draggable eventHandlers={mover('inicio')} />}
+        {pFin && <Marker position={pFin} icon={ICONO_FIN} draggable eventHandlers={mover('fin')} />}
+        <ClicEnMapa onClic={onClic} />
+        <Encuadrar puntos={[pIni, pFin].filter(Boolean)} />
       </MapContainer>
     </div>
   )

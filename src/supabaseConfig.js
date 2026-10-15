@@ -10,3 +10,8 @@ export const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || 'eyJ
 
 // Carpeta (bucket) de Supabase Storage donde se guardan las fotos
 export const BUCKET_FOTOS = 'fotos-columnas'
+
+// Clave de Google Maps (Geocoding API) para completar los nombres de las calles
+// con los de Google. Restringirla en Google Cloud a los dominios de la app.
+// Vacía: se usan los nombres de OpenStreetMap.
+export const GOOGLE_MAPS_KEY = import.meta.env?.VITE_GOOGLE_MAPS_KEY || ''

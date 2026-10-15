@@ -1,13 +1,17 @@
 // Turno del supervisor: abrir, cargar cuadras y cerrar con los litros usados
 import { useState } from 'react'
-import { useColeccion, guardar, actualizar, nuevoId, num, fmt, fechaHora, resumenTurno } from '../datos'
+import { useColeccion, guardar, actualizar, nuevoId, num, fmt, fechaHora, resumenTurno, litrosDeCuadras } from '../datos'
 import { Campo, Modal, EtqOper } from '../ui'
 
 export function CerrarTurnoModal({ turno, onCerrar, onListo }) {
   const colores = useColeccion('colores').filter(c => c.activo !== false)
   const registros = useColeccion('registros')
   const r = resumenTurno(turno, registros, colores)
-  const [litros, setLitros] = useState(() => Object.fromEntries(colores.map(c => [c.id, turno.litros?.[c.id] ?? ''])))
+  const enCuadras = litrosDeCuadras(r.registros, colores)
+  const hayEnCuadras = Object.values(enCuadras).some(v => v > 0)
+  // Propone lo que el operario fue cargando en cada cuadra; se puede corregir con lo real
+  const [litros, setLitros] = useState(() => Object.fromEntries(colores.map(c => [c.id,
+    turno.litros?.[c.id] ?? (hayEnCuadras ? +enCuadras[c.id].toFixed(2) : '')])))
   const [obs, setObs] = useState(turno.observacionesCierre || '')
   const [error, setError] = useState('')
 
@@ -28,9 +32,9 @@ export function CerrarTurnoModal({ turno, onCerrar, onListo }) {
     <Modal titulo="Cerrar turno" onCerrar={onCerrar}>
       <p>Cuadras: <b>{r.cuadras}</b> · Columnas pintadas: <b>{fmt(r.columnas)}</b> · Duración: <b>{fmt(r.horas, 1)} h</b></p>
       {error && <div className="error">{error}</div>}
-      <div className="tenue" style={{ marginBottom: 8 }}>Litros de pintura usados en el turno (el estimado sale del rendimiento por columna):</div>
+      <div className="tenue" style={{ marginBottom: 8 }}>Litros de pintura usados en el turno. Se completa con lo cargado en cada cuadra; corregilo si el consumo real fue distinto.</div>
       {colores.map(c => (
-        <Campo key={c.id} label={<><span className="muestra-color" style={{ background: c.hex }} />{c.nombre} — estimado {fmt(r.teoricos[c.id], 2)} L</>}>
+        <Campo key={c.id} label={<><span className="muestra-color" style={{ background: c.hex }} />{c.nombre} — cargado en cuadras {fmt(enCuadras[c.id], 2)} L · estimado {fmt(r.teoricos[c.id], 2)} L</>}>
           <input type="number" inputMode="decimal" min="0" step="0.1" value={litros[c.id]} onChange={e => setLitros(p => ({ ...p, [c.id]: e.target.value }))} />
         </Campo>
       ))}

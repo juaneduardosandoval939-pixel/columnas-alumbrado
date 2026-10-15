@@ -15,7 +15,7 @@ Misma tecnología que la app de Mantenimiento de Flota: React (Vite) + Supabase 
 ## Flujo de trabajo
 
 1. El supervisor abre su **turno**.
-2. Por cada cuadra pintada carga: GPS (automático, ajustable en el mapa), calle, entre qué calles, **cantidad de columnas**, fotos de antes/después y observaciones.
+2. Por cada cuadra pintada marca el **inicio (A)** y el **fin (B)** con el GPS en cada esquina (ajustables en el mapa); la app completa sola la calle intervenida y las transversales (Google o OpenStreetMap). Carga **cantidad de columnas**, **litros usados de cada color**, fotos de antes/después y observaciones.
 3. Al terminar **cierra el turno** cargando los litros usados de cada color (el sistema muestra el estimado según el rendimiento).
 4. El administrador ve la **productividad** (columnas por hora, litros por columna, desvío real vs. estimado) y el **stock**.
 5. En **Certificaciones** elige cliente y período: el certificado agrupa por calle (corredor) con sus intersecciones y cantidades. Se exporta a Excel o se imprime/guarda en PDF. Las cuadras certificadas no pueden volver a certificarse (salvo que se anule el certificado).
@@ -48,6 +48,8 @@ Fuente: "rendimiento insumos pintura de postes y analisis de costos.xlsx".
 3. Deploy. La dirección queda tipo `columnas-crear.vercel.app`.
 
 (Alternativa: pegar URL y key directamente en `src/supabaseConfig.js`.)
+
+Opcional, nombres de calles de Google: en Google Cloud crear una clave con **Geocoding API** habilitada, restringida a los dominios de la app, y cargarla en Vercel como `VITE_GOOGLE_MAPS_KEY`. Sin clave se usan los nombres de OpenStreetMap.
 
 ### 4. Primer ingreso
 - Usuario: `eduardo.sandoval@crearmantenimiento.com.ar`

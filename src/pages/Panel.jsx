@@ -1,8 +1,12 @@
 // Panel general del administrador
+import { useState } from 'react'
+import { MapaCuadras } from './Mapa'
+import { DetalleRegistro } from './Lista'
 import { useColeccion, num, fmt, fechaHora, stockColores, diaLocal, hoyISO } from '../datos'
 import { Barras } from '../ui'
 
-export default function Panel({ ir }) {
+export default function Panel({ usuario, ir }) {
+  const [detalle, setDetalle] = useState(null)
   const registros = useColeccion('registros')
   const turnos = useColeccion('turnos')
   const colores = useColeccion('colores').filter(c => c.activo !== false)
@@ -16,7 +20,7 @@ export default function Panel({ ir }) {
   const certificadas = suma(registros.filter(r => ['Certificado', 'Facturado'].includes(r.estadoCert)))
   const pendientes = suma(registros.filter(r => r.estadoOperativo === 'Terminado' && !['Certificado', 'Facturado'].includes(r.estadoCert)))
   const abiertos = turnos.filter(t => t.estado === 'abierto')
-  const stock = stockColores(colores, entradas, turnos)
+  const stock = stockColores(colores, entradas, turnos, registros)
   const bajos = stock.filter(s => s.disponible < num(s.stockMinimo))
 
   // Columnas por día, últimos 14 días
@@ -47,6 +51,15 @@ export default function Panel({ ir }) {
       </div>
 
       <div className="tarjeta">
+        <div className="acciones" style={{ alignItems: 'center', marginBottom: 8 }}>
+          <h2 style={{ margin: 0, flex: 1 }}>🗺️ Mapa de cuadras pintadas</h2>
+          <button className="btn sec chico" onClick={() => ir('mapa')}>Abrir mapa completo</button>
+        </div>
+        {registros.length === 0 ? <div className="tenue">Todavía no hay cuadras cargadas.</div>
+          : <MapaCuadras lista={registros} onDetalle={setDetalle} grande={false} />}
+      </div>
+
+      <div className="tarjeta">
         <h2>Turnos abiertos ahora</h2>
         {abiertos.length === 0 ? <div className="tenue">No hay turnos abiertos.</div> : abiertos.map(t => (
           <div key={t.id} style={{ padding: '6px 0', borderBottom: '1px solid var(--borde)' }}>
@@ -69,6 +82,9 @@ export default function Panel({ ir }) {
         <h2>Stock de pintura</h2>
         <Barras datos={stock.map(s => ({ nombre: s.nombre, valor: Math.max(0, s.disponible), color: s.hex === '#f2f2f2' ? '#b8c2bd' : s.hex }))} formato={v => fmt(v, 0) + ' L'} />
       </div>
+      {detalle && registros.find(r => r.id === detalle) && (
+        <DetalleRegistro r={registros.find(r => r.id === detalle)} usuario={usuario} ir={ir} onCerrar={() => setDetalle(null)} />
+      )}
     </>
   )
 }

@@ -124,6 +124,10 @@ table.tabla { width: 100%; border-collapse: collapse; background: #fff; font-siz
 .barras .barra-h .pista { flex: 1; background: #eef1ef; border-radius: 4px; height: 16px; overflow: hidden; }
 .barras .barra-h .pista, .barras .barra-h .relleno { display: block; }
 .barras .barra-h .relleno { height: 100%; background: var(--verde); }
+.punto-cuadra { display: flex; flex-direction: column; gap: 4px; }
+.sugerencias { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.sugerencias .etq { border: 0; cursor: pointer; font-size: 13px; padding: 5px 10px; }
+.muestra-linea { display: inline-block; width: 22px; height: 0; border-top: 4px solid; border-bottom: 4px solid; padding-top: 3px; vertical-align: middle; margin-right: 6px; box-sizing: content-box; border-color: currentColor; }
 .muestra-color { display: inline-block; width: 12px; height: 12px; border-radius: 3px; border: 1px solid #999; vertical-align: middle; margin-right: 6px; }
 
 /* ── Impresión de certificados ─────────────────────────────── */

@@ -13,6 +13,8 @@ export function visibles(registros, usuario) {
 
 export function DetalleRegistro({ r, usuario, ir, onCerrar }) {
   const [confirmar, setConfirmar] = useState(false)
+  const colores = useColeccion('colores')
+  const conLitros = colores.filter(c => num(r.litros?.[c.id]) > 0)
   const puedeEditar = usuario.rol === 'admin' || (usuario.rol === 'supervisor' && !['Certificado', 'Facturado'].includes(r.estadoCert))
   function borrar() {
     (r.fotos || []).filter(f => f.pendiente).forEach(f => descartarPendiente(f.id))
@@ -30,7 +32,8 @@ export function DetalleRegistro({ r, usuario, ir, onCerrar }) {
         {r.editado ? <><br />Editado {fechaHora(r.editado)} por {r.editadoPor}</> : null}
         {r.certificadoNumero ? <><br />Certificado N° {r.certificadoNumero}</> : null}
       </p>
-      {r.lat && <p><a href={`https://www.google.com/maps?q=${r.lat},${r.lng}`} target="_blank" rel="noreferrer">📍 Ver en Google Maps</a></p>}
+      {r.lat && <p><a href={r.lat2 ? `https://www.google.com/maps/dir/${r.lat},${r.lng}/${r.lat2},${r.lng2}/data=!4m2!4m1!3e2` : `https://www.google.com/maps?q=${r.lat},${r.lng}`} target="_blank" rel="noreferrer">📍 Ver la cuadra en Google Maps</a></p>}
+      {conLitros.length > 0 && <p><b>Pintura usada:</b> {conLitros.map(c => `${c.nombre} ${fmt(r.litros[c.id], 2)} L`).join(' · ')}</p>}
       {r.observaciones && <p><b>Observaciones:</b> {r.observaciones}</p>}
       <Fotos fotos={r.fotos} />
       {confirmar ? (
@@ -56,6 +59,7 @@ export default function Lista({ usuario, ir }) {
   const registros = visibles(useColeccion('registros'), usuario)
   const clientes = useColeccion('clientes')
   const usuarios = useColeccion('usuarios')
+  const colores = useColeccion('colores')
   const [fil, setFil] = useState({ desde: '', hasta: '', clienteId: '', usuarioId: '', cert: '', texto: '' })
   const [detalle, setDetalle] = useState(null)
   const cambiar = (k, v) => setFil(p => ({ ...p, [k]: v }))
@@ -80,12 +84,14 @@ export default function Lista({ usuario, ir }) {
       nombre: 'Cuadras',
       filas: lista.map(r => ({
         Fecha: fechaCorta(r.fecha), Calle: r.calle, 'Entre calle': r.entre1, 'Y calle': r.entre2,
-        Columnas: num(r.columnas), Cliente: r.clienteNombre, Usuario: r.usuarioNombre,
+        Columnas: num(r.columnas),
+        ...Object.fromEntries(colores.map(c => [`Litros ${c.nombre}`, num(r.litros?.[c.id])])),
+        Cliente: r.clienteNombre, Usuario: r.usuarioNombre,
         'Estado trabajo': r.estadoOperativo, Certificación: r.estadoCert || 'Sin certificar',
-        'Certificado N°': r.certificadoNumero || '', Latitud: r.lat, Longitud: r.lng,
+        'Certificado N°': r.certificadoNumero || '', 'Latitud inicio': r.lat, 'Longitud inicio': r.lng, 'Latitud fin': r.lat2 || '', 'Longitud fin': r.lng2 || '',
         Fotos: (r.fotos || []).filter(f => f.url).map(f => f.url).join(' '), Observaciones: r.observaciones,
       })),
-      anchos: [11, 24, 20, 20, 9, 20, 18, 13, 14, 12, 11, 11, 40, 30],
+      anchos: [11, 24, 20, 20, 9, ...colores.map(() => 14), 20, 18, 13, 14, 12, 11, 11, 11, 11, 40, 30],
     }])
   }
 

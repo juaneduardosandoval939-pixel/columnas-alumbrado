@@ -195,11 +195,19 @@ export function resumenTurno(turno, registros, colores) {
   }
 }
 
-// Stock por color: entradas − litros reales usados en turnos cerrados
-export function stockColores(colores, entradas, turnos) {
+// Litros por color cargados en un grupo de cuadras
+export function litrosDeCuadras(regs, colores) {
+  return Object.fromEntries(colores.map(c => [c.id, regs.reduce((s, r) => s + num(r.litros?.[c.id]), 0)]))
+}
+
+// Stock por color: entradas − litros usados. Lo usado sale de los turnos cerrados
+// (el supervisor confirma los litros al cerrar) y de las cuadras cargadas sin turno.
+export function stockColores(colores, entradas, turnos, registros = []) {
+  const sinTurno = registros.filter(r => !r.turnoId)
   return colores.map(c => {
     const entrado = entradas.filter(e => e.colorId === c.id).reduce((s, e) => s + num(e.litros), 0)
     const usado = turnos.filter(t => t.estado === 'cerrado').reduce((s, t) => s + num(t.litros?.[c.id]), 0)
+      + sinTurno.reduce((s, r) => s + num(r.litros?.[c.id]), 0)
     return { ...c, entrado, usado, disponible: entrado - usado }
   })
 }

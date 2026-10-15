@@ -60,11 +60,12 @@ export default function Materiales({ usuario }) {
   const colores = useColeccion('colores')
   const entradas = useColeccion('entradas')
   const turnos = useColeccion('turnos')
+  const registros = useColeccion('registros')
   const [entrada, setEntrada] = useState(false)
   const [editar, setEditar] = useState(undefined)
   const [aPintar, setAPintar] = useState(1000)
   const activos = colores.filter(c => c.activo !== false)
-  const stock = stockColores(activos, entradas, turnos)
+  const stock = stockColores(activos, entradas, turnos, registros)
   const alcanzan = stock.length ? Math.floor(Math.min(...stock.map(s => s.rendimiento > 0 ? Math.max(0, s.disponible) / s.rendimiento : Infinity))) : 0
 
   return (

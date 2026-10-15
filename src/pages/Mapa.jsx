@@ -1,11 +1,58 @@
-// Mapa con todas las cuadras pintadas
-import { useMemo, useState } from 'react'
-import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet'
+// Mapa con todas las cuadras pintadas: cada cuadra es una línea de esquina a esquina
+// (verde = terminada, azul = certificada, ámbar = en proceso)
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { MapContainer, Popup, useMap } from 'react-leaflet'
 import { useColeccion, num, fmt, fechaCorta, ESTADOS_CERT, diaLocal } from '../datos'
-import { Campo, CENTRO } from '../ui'
+import { Campo, CENTRO, CapaBase, LineaCuadra, colorCuadra, COLORES_CUADRA } from '../ui'
 import { visibles, DetalleRegistro } from './Lista'
 
-const COLOR = { 'Sin certificar': '#7a8a90', 'En revisión': '#d39e00', Certificado: '#1e7a46', Rechazado: '#c0392b', Facturado: '#2563a8' }
+const LEYENDA = [
+  ['Terminada (sin certificar)', COLORES_CUADRA.terminada],
+  ['Certificada', COLORES_CUADRA.certificada],
+  ['En proceso', COLORES_CUADRA.proceso],
+]
+
+// Encuadra todas las cuadras la primera vez que se abre el mapa
+function EncuadrarTodo({ lista }) {
+  const mapa = useMap()
+  const hecho = useRef(false)
+  useEffect(() => {
+    if (hecho.current || !lista.length) return
+    hecho.current = true
+    const pts = lista.flatMap(r => [[num(r.lat), num(r.lng)], r.lat2 ? [num(r.lat2), num(r.lng2)] : null]).filter(Boolean)
+    if (pts.length === 1) mapa.setView(pts[0], 17)
+    else mapa.fitBounds(pts, { padding: [30, 30], maxZoom: 17 })
+  }, [lista])
+  return null
+}
+
+// Mapa de cuadras reutilizable (pantalla Mapa y Panel)
+export function MapaCuadras({ lista, onDetalle, grande = true }) {
+  return (
+    <>
+      <div className="acciones" style={{ fontSize: 13, marginBottom: 6 }}>
+        {LEYENDA.map(([k, c]) => <span key={k} style={{ color: c }}><span className="muestra-linea" /><span style={{ color: 'var(--texto)' }}>{k}</span></span>)}
+      </div>
+      <div className={'mapa' + (grande ? ' grande' : '')} style={grande ? undefined : { height: 420 }}>
+        <MapContainer center={CENTRO} zoom={14} style={{ height: '100%' }}>
+          <CapaBase />
+          {lista.filter(r => r.lat && r.lng).map(r => (
+            <LineaCuadra key={r.id} inicio={[num(r.lat), num(r.lng)]} fin={r.lat2 ? [num(r.lat2), num(r.lng2)] : null} color={colorCuadra(r)}>
+              <Popup>
+                <b>{r.calle}</b><br />entre {r.entre1}{r.entre2 ? ' y ' + r.entre2 : ''}<br />
+                {fmt(r.columnas)} columnas · {fechaCorta(r.fecha)}<br />
+                {r.certificadoNumero ? <>Certificado N° {r.certificadoNumero}<br /></> : null}
+                {r.usuarioNombre}<br />
+                <button className="btn chico" style={{ marginTop: 6 }} onClick={() => onDetalle(r.id)}>Ver detalle y fotos</button>
+              </Popup>
+            </LineaCuadra>
+          ))}
+          <EncuadrarTodo lista={lista.filter(r => r.lat && r.lng)} />
+        </MapContainer>
+      </div>
+    </>
+  )
+}
 
 export default function Mapa({ usuario, ir }) {
   const registros = visibles(useColeccion('registros'), usuario)
@@ -20,7 +67,6 @@ export default function Mapa({ usuario, ir }) {
     return true
   }), [registros, fil])
   const total = lista.reduce((s, r) => s + num(r.columnas), 0)
-  const centro = lista.length ? [num(lista[0].lat), num(lista[0].lng)] : CENTRO
   const actual = detalle && registros.find(r => r.id === detalle)
 
   return (
@@ -36,27 +82,9 @@ export default function Mapa({ usuario, ir }) {
             </select>
           </Campo>
         </div>
-        <div className="acciones" style={{ fontSize: 13 }}>
-          <span style={{ flex: 1 }}><b>{lista.length}</b> cuadras · <b>{fmt(total)}</b> columnas</span>
-          {Object.entries(COLOR).map(([k, c]) => <span key={k}><span className="muestra-color" style={{ background: c, borderRadius: '50%' }} />{k}</span>)}
-        </div>
+        <div style={{ fontSize: 13 }}><b>{lista.length}</b> cuadras · <b>{fmt(total)}</b> columnas</div>
       </div>
-      <div className="mapa grande">
-        <MapContainer center={centro} zoom={14} style={{ height: '100%' }}>
-          <TileLayer attribution="© OpenStreetMap" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          {lista.map(r => (
-            <CircleMarker key={r.id} center={[num(r.lat), num(r.lng)]} radius={7 + Math.min(10, num(r.columnas) / 2)}
-              pathOptions={{ color: '#fff', weight: 2, fillColor: COLOR[r.estadoCert || 'Sin certificar'] || '#7a8a90', fillOpacity: 0.9 }}>
-              <Popup>
-                <b>{r.calle}</b><br />entre {r.entre1}{r.entre2 ? ' y ' + r.entre2 : ''}<br />
-                {fmt(r.columnas)} columnas · {fechaCorta(r.fecha)}<br />
-                {r.usuarioNombre}<br />
-                <button className="btn chico" style={{ marginTop: 6 }} onClick={() => setDetalle(r.id)}>Ver detalle y fotos</button>
-              </Popup>
-            </CircleMarker>
-          ))}
-        </MapContainer>
-      </div>
+      <MapaCuadras lista={lista} onDetalle={setDetalle} />
       {actual && <DetalleRegistro r={actual} usuario={usuario} ir={ir} onCerrar={() => setDetalle(null)} />}
     </>
   )

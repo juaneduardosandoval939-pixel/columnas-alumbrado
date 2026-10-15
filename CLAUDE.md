@@ -20,7 +20,10 @@ Misma arquitectura que `mantenimiento-flota-app`: React 18 + Vite, datos sincron
 - `supabase/supabase_setup.sql` — tabla y bucket.
 
 ## Reglas de negocio
-- Un **registro** = una cuadra: calle, entre calle 1 y 2, GPS, cantidad de columnas (unidades), fotos antes/después.
+- Un **registro** = una cuadra: calle intervenida, calles transversales (entre1 en el inicio A, entre2 en el fin B), GPS de inicio (`lat`,`lng`) y fin (`lat2`,`lng2`), cantidad de columnas (unidades), litros usados por color (`litros`), fotos antes/después.
+- En el mapa cada cuadra es una línea de A a B dibujada como dos paralelas a los costados de la calle (para no tapar el nombre): verde terminada, azul certificada, ámbar en proceso. Cuadras viejas sin B se ven como punto.
+- Nombres de calles: `src/calles.js` usa Google Geocoding si hay `VITE_GOOGLE_MAPS_KEY` (o `GOOGLE_MAPS_KEY` en `supabaseConfig.js`) y completa con OpenStreetMap (Overpass) si no.
+- Stock usado = litros de turnos cerrados + litros de cuadras cargadas sin turno. Al cerrar turno se proponen los litros cargados en sus cuadras.
 - 3 colores con rendimiento en litros por columna: Azul Tormenta Eléctrica 0,30 · Azul Traful 0,25 · Blanco 0,20 (editables).
 - El supervisor abre turno → carga cuadras → cierra turno cargando litros reales por color. Productividad = columnas/hora, litros/columna y desvío vs. estimado.
 - Certificado = cuadras terminadas sin certificar de un cliente y período, agrupadas por calle con intersecciones y subtotales. Una cuadra certificada no se vuelve a certificar salvo que se anule el certificado.
